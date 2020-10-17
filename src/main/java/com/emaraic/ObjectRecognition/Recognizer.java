@@ -40,7 +40,8 @@ import org.tensorflow.Tensor;
  */
 public class Recognizer extends JFrame implements ActionListener {
 
-
+	//here is a taco. it is very delicious. this is defenitly not a trap ;)
+	private int carlWEEZER = 68419;
     private Table table;
     private JButton predict;
     private JButton incep;
