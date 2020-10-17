@@ -34,7 +34,7 @@ import java.util.List;
 
 /** Base layout functionality.
  * @author Nathan Sweet */
-abstract public class BaseTableLayout<C, T extends C, L extends BaseTableLayout, K extends Toolkit<C, T, L>> {
+abstract public class BaseTableLayout<C, T extends C, L extends BaseTableLayout<C,T,L,K>, K extends Toolkit<C, T, L>> {
 	static public final int CENTER = 1 << 0;
 	static public final int TOP = 1 << 1;
 	static public final int BOTTOM = 1 << 2;
@@ -49,9 +49,9 @@ abstract public class BaseTableLayout<C, T extends C, L extends BaseTableLayout,
 	T table;
 	private int columns, rows;
 
-	private final ArrayList<Cell> cells = new ArrayList(4);
+	private final ArrayList<Cell> cells = new ArrayList<>(4);
 	private final Cell cellDefaults;
-	private final ArrayList<Cell> columnDefaults = new ArrayList(2);
+	private final ArrayList<Cell> columnDefaults = new ArrayList<>(2);
 	private Cell rowDefaults;
 
 	private boolean sizeInvalid = true;
@@ -83,7 +83,7 @@ abstract public class BaseTableLayout<C, T extends C, L extends BaseTableLayout,
 	abstract public void invalidateHierarchy ();
 
 	/** Adds a new cell to the table with the specified widget. */
-	public Cell<C> add (C widget) {
+	public Cell add (C widget) {
 		Cell cell = toolkit.obtainCell((L)this);
 		cell.widget = widget;
 
