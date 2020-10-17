@@ -38,10 +38,8 @@ import org.tensorflow.Tensor;
  * Kindly: Don't remove this header
  * Download the pre-trained inception model from here: https://storage.googleapis.com/download.tensorflow.org/models/inception_dec_2015.zip 
  */
-public class Recognizer extends JFrame implements ActionListener {
-
-	//here is a taco. it is very delicious. this is defenitly not a trap ;)
-	private int carlWEEZER = 68419;
+public class Recognizer extends JFrame {// implements ActionListener {
+	
     private Table table;
     private JButton predict;
     private JButton incep;
@@ -61,17 +59,17 @@ public class Recognizer extends JFrame implements ActionListener {
     private List<String> labels;
 
     public Recognizer() {
-        setTitle("Object Recognition - Emaraic.com");
-        setSize(500, 500);
+        setTitle("Utensil Recognition Software");
+        setSize(500, 400);
         table = new Table();
         
         predict = new JButton("Predict");
         predict.setEnabled(false);
         incep = new JButton("Choose Inception");
         img = new JButton("Choose Image");
-        incep.addActionListener(this);
-        img.addActionListener(this);
-        predict.addActionListener(this);
+        incep.addActionListener(new InceptionButton());
+        img.addActionListener(new ImageButton());
+        predict.addActionListener(new PredictButton());
         
         incepch = new JFileChooser();
         imgch = new JFileChooser();
@@ -98,10 +96,6 @@ public class Recognizer extends JFrame implements ActionListener {
         table.addCell(predict).colspan(2);
         table.row();
         table.addCell(result).width(300).colspan(2);
-        table.row();
-        table.addCell(new JLabel("By: Taha Emara")).center().padTop(30).colspan(2);
-       table.row();
-        table.addCell(new JLabel("Email: taha@emaraic.com")).center().colspan(2);
        
         setLocationRelativeTo(null);
 
@@ -109,25 +103,35 @@ public class Recognizer extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-        if (e.getSource() == incep) {
-            int returnVal = incepch.showOpenDialog(this);
-
-            if (returnVal == JFileChooser.APPROVE_OPTION) {
-                File file = incepch.getSelectedFile();
-                modelpath = file.getAbsolutePath();
-                modelpth.setText(modelpath);
-                System.out.println("Opening: " + file.getAbsolutePath());
-                modelselected = true;
-                graphDef = readAllBytesOrExit(Paths.get(modelpath, "tensorflow_inception_graph.pb"));
-                labels = readAllLinesOrExit(Paths.get(modelpath, "imagenet_comp_graph_label_strings.txt"));
-            } else {
-                System.out.println("Process was cancelled by user.");
-            }
-
-        } else if (e.getSource() == img) {
+    //@Override
+    public class InceptionButton implements ActionListener
+	{
+	    public void actionPerformed(ActionEvent e) 
+	    {	        
+	        int returnVal = incepch.showOpenDialog(getParent());
+	
+	        if (returnVal == JFileChooser.APPROVE_OPTION)
+	        {
+	            File file = incepch.getSelectedFile();
+	            modelpath = file.getAbsolutePath();
+	            modelpth.setText(modelpath);
+	            System.out.println("Opening: " + file.getAbsolutePath());
+	            modelselected = true;
+	            graphDef = readAllBytesOrExit(Paths.get(modelpath, "tensorflow_inception_graph.pb"));
+	            labels = readAllLinesOrExit(Paths.get(modelpath, "imagenet_comp_graph_label_strings.txt"));
+	        } 
+	        
+	        else 
+	        {
+	            System.out.println("Process was cancelled by user.");
+	        }
+	    }
+	}
+    
+    public class ImageButton implements ActionListener
+	{
+	    public void actionPerformed(ActionEvent e) 
+	    {
             int returnVal = imgch.showOpenDialog(Recognizer.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 try {
@@ -138,19 +142,32 @@ public class Recognizer extends JFrame implements ActionListener {
                     Image img = ImageIO.read(file);
 
                     viewer.setIcon(new ImageIcon(img.getScaledInstance(200, 200, 200)));
+                    
                     if (modelselected) {
                         predict.setEnabled(true);
                     }
-                } catch (IOException ex) {
+                } 
+                
+                catch (IOException ex) 
+                {
                     Logger.getLogger(Recognizer.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            } else {
+            }
+            else 
+            {
                 System.out.println("Process was cancelled by user.");
             }
-        } else if (e.getSource() == predict) {
+        }
+	}
+    
+    public class PredictButton implements ActionListener
+	{
+	    public void actionPerformed(ActionEvent e) 
+	    {
             byte[] imageBytes = readAllBytesOrExit(Paths.get(imagepath));
 
-            try (Tensor image = Tensor.create(imageBytes)) {
+            try (Tensor image = Tensor.create(imageBytes)) 
+            {
                 float[] labelProbabilities = executeInceptionGraph(graphDef, image);
                 int bestLabelIdx = maxIndex(labelProbabilities);
                 result.setText("");
@@ -158,30 +175,30 @@ public class Recognizer extends JFrame implements ActionListener {
                                 "BEST MATCH: %s (%.2f%% likely)",
                                 labels.get(bestLabelIdx), labelProbabilities[bestLabelIdx] * 100f));
                 System.out.println(
-                        String.format(
-                                "BEST MATCH: %s (%.2f%% likely)",
-                                labels.get(bestLabelIdx), labelProbabilities[bestLabelIdx] * 100f));
+                    String.format(
+                            "BEST MATCH: %s (%.2f%% likely)",
+                            labels.get(bestLabelIdx), labelProbabilities[bestLabelIdx] * 100f));
             }
-
         }
     }
 
-    ///
-    private static float[] executeInceptionGraph(byte[] graphDef, Tensor image) {
-        try (Graph g = new Graph()) {
-            g.importGraphDef(graphDef);
-            try (Session s = new Session(g);
-                    Tensor result = s.runner().feed("DecodeJpeg/contents", image).fetch("softmax").run().get(0)) {
-                final long[] rshape = result.shape();
-                if (result.numDimensions() != 2 || rshape[0] != 1) {
-                    throw new RuntimeException(
-                            String.format(
-                                    "Expected model to produce a [1 N] shaped tensor where N is the number of labels, instead it produced one with shape %s",
-                                    Arrays.toString(rshape)));
-                }
-                int nlabels = (int) rshape[1];
-                return result.copyTo(new float[1][nlabels])[0];
+    private static float[] executeInceptionGraph(byte[] graphDef, Tensor image)
+    {
+        Graph g = new Graph();
+        g.importGraphDef(graphDef);
+        try (Session s = new Session(g);
+                Tensor result = s.runner().feed("DecodeJpeg/contents", image).fetch("softmax").run().get(0)) 
+        {
+            final long[] rshape = result.shape();
+            if (result.numDimensions() != 2 || rshape[0] != 1)
+            {
+                throw new RuntimeException(
+                        String.format(
+                                "Expected model to produce a [1 N] shaped tensor where N is the number of labels, instead it produced one with shape %s",
+                                Arrays.toString(rshape)));
             }
+            int nlabels = (int) rshape[1];
+            return result.copyTo(new float[1][nlabels])[0];
         }
     }
 
@@ -268,7 +285,6 @@ public class Recognizer extends JFrame implements ActionListener {
 
         private Graph g;
     }
-    ////////////
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
