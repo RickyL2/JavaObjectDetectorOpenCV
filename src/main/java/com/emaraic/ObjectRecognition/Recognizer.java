@@ -38,7 +38,7 @@ import org.tensorflow.Tensor;
  * Kindly: Don't remove this header
  * Download the pre-trained inception model from here: https://storage.googleapis.com/download.tensorflow.org/models/inception_dec_2015.zip 
  */
-public class Recognizer extends JFrame {// implements ActionListener {
+public class Recognizer extends JFrame {
 	
     private Table table;
     private JButton predict;
@@ -178,6 +178,14 @@ public class Recognizer extends JFrame {// implements ActionListener {
                     String.format(
                             "BEST MATCH: %s (%.2f%% likely)",
                             labels.get(bestLabelIdx), labelProbabilities[bestLabelIdx] * 100f));
+                
+                for (int i = 0; i < labelProbabilities.length; i++)
+                {
+                	if(labelProbabilities[i] > 0.3)
+                	{
+                		System.out.println(labels.get(i) + " " + labelProbabilities[i] * 100f + "\n");
+                	}
+                }
             }
         }
     }
