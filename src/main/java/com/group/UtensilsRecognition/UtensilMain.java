@@ -26,11 +26,14 @@ public class UtensilMain{
 		
 		webcam.setViewSize(WebcamResolution.VGA.getSize());
 		System.out.print(WebcamResolution.VGA.getSize());
+		WebcamPanel TheWebCamPanel = new WebcamPanel(webcam);
+		TheWebCamPanel.setFPSDisplayed(true);
+		TheWebCamPanel.setDisplayDebugInfo(true);
+		TheWebCamPanel.setImageSizeDisplayed(true);
+		TheWebCamPanel.setMirrored(true);
 		
-		UtensilRecognitionUI frame = new UtensilRecognitionUI(new WebcamPanel(webcam));
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-		
+		UtensilRecognitionUI frame = new UtensilRecognitionUI(TheWebCamPanel);
+		frame.setVisible(true);		
 	}
 	
 }
