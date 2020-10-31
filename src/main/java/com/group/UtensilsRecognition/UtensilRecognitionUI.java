@@ -22,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -34,8 +35,8 @@ import org.tensorflow.Tensor;
 
 public class UtensilRecognitionUI extends JFrame{
 	
-	private static final int FRAME_WIDTH = 500;
-	private static final int FRAME_HEIGHT = 400;
+	private static final int FRAME_WIDTH = 540;
+	private static final int FRAME_HEIGHT = 500;
 	
 	private String FrameName = "Utensil Recognition Software";
     private Table table;
@@ -53,17 +54,16 @@ public class UtensilRecognitionUI extends JFrame{
     private JTextField modelpth;
     private JTextField labelpth;
     
+    private JPanel cameraView;
     
     private JTextField result;
-    
-    private byte[] graphDef;
-    private List<String> labels;
 
-    public UtensilRecognitionUI() {
+    public UtensilRecognitionUI(JPanel cameraView) {
     	
+    	this.cameraView = cameraView;
         setTitle(FrameName);
         setSize(FRAME_WIDTH, FRAME_HEIGHT);
-        setMinimumSize(new Dimension(500, 350));
+        //setMinimumSize(new Dimension(500, 350));
         createButtons();
         createTable();
     }
@@ -102,6 +102,7 @@ public class UtensilRecognitionUI extends JFrame{
 	 */
 	private void createTable()
 	{
+		System.out.print("I made it to creatTable\n");
 		table = new Table();
         getContentPane().add(table);
         table.addCell(modelpth).width(250);
@@ -110,13 +111,14 @@ public class UtensilRecognitionUI extends JFrame{
         table.addCell(labelpth).width(250);
         table.addCell(labelImport);
         table.row();
-        //webcam frame here
+        System.out.print("added camera");
+        table.addCell(cameraView).size(448, 336).colspan(2);
         table.row();
         table.addCell(startpredict).colspan(2);
         table.row();
         table.addCell(result).width(300).colspan(2);       
         setLocationRelativeTo(null);
-        setResizable(true);
+        setResizable(false);
 	}
 
     //@Override
