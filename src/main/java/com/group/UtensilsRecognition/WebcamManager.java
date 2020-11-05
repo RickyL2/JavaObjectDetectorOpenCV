@@ -1,6 +1,7 @@
 package com.group.UtensilsRecognition;
 
 import java.awt.BorderLayout;
+import java.awt.image.BufferedImage;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -18,11 +19,13 @@ public class WebcamManager {
 	private JPanel display;
 	private JLabel WarningImage;
 	private JPanel ImagePanel;
+	private Boolean cameraConnected;
 	
 	
 	public WebcamManager()
 	{
 		display = new JPanel();
+		cameraConnected = false;
 		
 		System.out.print("these webcams have been detected\n");
 		for (Webcam webcam : Webcam.getWebcams())
@@ -67,6 +70,8 @@ public class WebcamManager {
 		//layout is needed so view can scale
 		display.removeAll();
 		display.setLayout(new BorderLayout());
+		
+		cameraConnected = false;
 		//if there are no webcams detected, will set display to error image
 		if (Webcam.getWebcams().size() == 0)
 		{
@@ -96,8 +101,19 @@ public class WebcamManager {
 	
 	private void GetCamera()
 	{
+		cameraConnected = true;
 		thewebcam = Webcam.getDefault();
 		System.out.print("getting camera" + thewebcam.getName() + "\n");
 		thewebcam.setViewSize(WebcamResolution.VGA.getSize());
+	}
+	
+	public Boolean IsCameraConnected()
+	{
+		return cameraConnected;
+	}
+	
+	public BufferedImage takePhoto()
+	{
+		return thewebcam.getImage();
 	}
 }
