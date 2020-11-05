@@ -91,7 +91,7 @@ public class UtensilRecognitionUI extends JFrame{
 	}
 	
 	/** Will enable the start button within UI once files have been chosen. */
-	public void EnableStartButton()
+	private void EnableStartButton()
     {
 		//if txt fields are not empty, must mean that files have been chosen
     	if (modelpth.getText().length() > 0 && labelpth.getText().length() > 0)
@@ -101,7 +101,7 @@ public class UtensilRecognitionUI extends JFrame{
 	/** Allows a JFileChooser to open when button is pressed. JFileChooser will be
 	 * limited in what is allowed to be selected. Filelocation will be outputted
 	 * to a JTextField */
-    public class ImportButton implements ActionListener
+    private class ImportButton implements ActionListener
 	{
     	private JFileChooser FileChooser;
     	private JTextField fieldFilePath;
@@ -135,12 +135,19 @@ public class UtensilRecognitionUI extends JFrame{
 	}
     
     /** Is responsible for activating tensorflow image analysis, not yet complete. */
-    public class StartPredictButton implements ActionListener
+    private class StartPredictButton implements ActionListener
 	{
 	    public void actionPerformed(ActionEvent e) 
 	    {
             
         }
+    }
+    
+    /** Will update the result txt box
+     * @param resultTxt is the new txt for the result box */
+    public void UpdateResults(String resultTxt)
+    {
+    	result.setText(resultTxt);
     }
 	
 	/** Places UI elements into different portions and adds them to the frame. */

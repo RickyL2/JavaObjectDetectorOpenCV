@@ -12,28 +12,15 @@ import com.github.sarxos.webcam.WebcamResolution;
 
 public class UtensilMain{
 
-	private static Webcam webcam = null;
+	private static WebcamManager webcam;
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		webcam = Webcam.getDefault();
+		webcam = new WebcamManager();
 		
-		if (webcam == null) {
-			System.out.println("No webcams found...");
-			System.exit(1);
-		}
-		
-		webcam.setViewSize(WebcamResolution.VGA.getSize());
-		System.out.print(WebcamResolution.VGA.getSize());
-		WebcamPanel TheWebCamPanel = new WebcamPanel(webcam);
-		TheWebCamPanel.setFPSDisplayed(true);
-		TheWebCamPanel.setDisplayDebugInfo(true);
-		TheWebCamPanel.setImageSizeDisplayed(true);
-		TheWebCamPanel.setMirrored(true);
-		
-		UtensilRecognitionUI frame = new UtensilRecognitionUI(TheWebCamPanel);
-		frame.setVisible(true);		
+		UtensilRecognitionUI frame = new UtensilRecognitionUI(webcam.GetWebCamPanel());
+		frame.setVisible(true);
 	}
 	
 }
