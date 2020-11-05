@@ -143,6 +143,19 @@ public class UtensilRecognitionUI extends JFrame{
         }
     }
     
+    
+    /** returns the text of the modelpath txt box */
+    public String GetModelPath()
+    {
+    	return modelpth.getText();
+    }
+    
+    /** returns the text of the labelpath txt box */
+    public String GetLabelPath()
+    {
+    	return labelpth.getText();
+    }
+    
     /** Will update the result txt box
      * @param resultTxt is the new txt for the result box */
     public void UpdateResults(String resultTxt)

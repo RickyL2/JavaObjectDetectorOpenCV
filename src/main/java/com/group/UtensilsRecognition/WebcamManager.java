@@ -1,5 +1,7 @@
 package com.group.UtensilsRecognition;
 
+import java.awt.BorderLayout;
+
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -26,7 +28,7 @@ public class WebcamManager {
 		for (Webcam webcam : Webcam.getWebcams())
 			System.out.println("Webcam detected: " + webcam.getName());
 		
-		WarningImage = new JLabel(new ImageIcon("CameraNotFoundImage.png"));		
+		WarningImage = new JLabel(new ImageIcon("CameraNotFoundImage.png"));
 		Webcam.addDiscoveryListener(new WebcamDiscovery());		
 		SetWebCamPanel();
 	}
@@ -61,35 +63,41 @@ public class WebcamManager {
 	{
 		System.out.print("Guess what\n"); //Extremely important, will explode without this
 		
-		//removes whatever display is currently being shown
+		//removes whatever display is currently being shown and creates a new layout
+		//layout is needed so view can scale
 		display.removeAll();
-		
+		display.setLayout(new BorderLayout());
 		//if there are no webcams detected, will set display to error image
 		if (Webcam.getWebcams().size() == 0)
 		{
 			ImagePanel = new JPanel();
 			ImagePanel.add(WarningImage);
-			display.add(ImagePanel);
+			display.add(ImagePanel, BorderLayout.CENTER);
 		}
 		
-		//if there are webcam(s) detected, will grab the default webcam
+		//if there are webcam(s) detected, will connect to webcam and setup panel
 		else
 		{				
-			thewebcam = Webcam.getDefault();
-			System.out.print("getting camera" + thewebcam.getName() + "\n");
-			thewebcam.setViewSize(WebcamResolution.VGA.getSize());
+			GetCamera();
 			//creates the panel with a view of the webcam
 			WebcamPanel TheWebCamPanel = new WebcamPanel(thewebcam);
 			TheWebCamPanel.setFPSDisplayed(true);
 			TheWebCamPanel.setDisplayDebugInfo(true);
 			TheWebCamPanel.setImageSizeDisplayed(true);
 			TheWebCamPanel.setMirrored(true);
-			display.add(TheWebCamPanel);
+			display.add(TheWebCamPanel, BorderLayout.CENTER);
 		}
 		
 		//finalizes display stuff
-		display.validate();
-		
+		display.validate();		
 		System.out.print("chicken butt\n"); //Extremely important, will explode without this
+	}
+	
+	
+	private void GetCamera()
+	{
+		thewebcam = Webcam.getDefault();
+		System.out.print("getting camera" + thewebcam.getName() + "\n");
+		thewebcam.setViewSize(WebcamResolution.VGA.getSize());
 	}
 }
