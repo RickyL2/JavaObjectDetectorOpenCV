@@ -13,7 +13,11 @@ import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -35,20 +39,38 @@ public class WebcamManagerV2
 	private WebcamPicker picker = null;	
 	private ImagePanel warningPanel;
 	
+	//for drawing found objects on webcam panel
+	private List<DetectedObject> foundObjects = null;
+	private WebcamPanel.Painter painter = null;
+	private int LabelfontSize = 20;
+	
 	private Webcam currentWebcam = null;
 	private boolean webCamPanelHasBeenInitialized = false;
 	private static String WARNING_LABEL = "No Camera Connected";
 	
-	private static boolean DEBUG_MODE = true;
+	private boolean DEBUG_MODE = true;
 	
 	public WebcamManagerV2()
 	{
+		//adds a box that says "taco" near the top left of webcam panel, for testing purposes
+		if(DEBUG_MODE)
+		{
+			Rectangle2D.Double box = new Rectangle2D.Double(10.0f, 10.0f, 30.0f, 30.0f);
+			DetectedObject billy = new DetectedObject(3.0f, Color.BLUE, box, "TACO");
+			foundObjects = new ArrayList<DetectedObject>();
+			foundObjects.add(billy);
+		}
+		
 		//is required so threaded stuff wont give out an error exception thing
 		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandlingForThread());
 		
+		//the overall display panel
 		display = new JPanel();
+		
+		//for being able to select a different camera
 		picker = new WebcamPicker();
 		picker.addItemListener(new PanelInteractivity());
+		
 		//creates panel with error image, looks dope
 		warningPanel = new ImagePanel(createErrorImage(WARNING_LABEL));
 		
@@ -247,6 +269,9 @@ public class WebcamManagerV2
 		
 		TheWebCamPanel = new WebcamPanel(theChosenOne, false);
 		webCamPanelHasBeenInitialized = true;
+		painter = TheWebCamPanel.getDefaultPainter();
+		TheWebCamPanel.setPainter(new DrawableWebCamPanel());
+		
 		TheWebCamPanel.start();
 		TheWebCamPanel.setMirrored(true);	
 		
@@ -259,6 +284,8 @@ public class WebcamManagerV2
 			TheWebCamPanel.setImageSizeDisplayed(true);
 		}		
         
+//		painter = (DrawableWebCamPanel) TheWebCamPanel.getDefaultPainter();
+		
 		picker.setSelectedItem(theChosenOne);
 		display.add(picker, BorderLayout.NORTH);
 		display.add(TheWebCamPanel, BorderLayout.CENTER);
@@ -284,6 +311,11 @@ public class WebcamManagerV2
 			return currentWebcam.getImage();
 		
 		return new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
+	}
+	
+	public void SetDetectedObjectList(List<DetectedObject> newListOfObjects)
+	{
+		foundObjects = newListOfObjects;
 	}
 	
 	/** will return a JPanel with a view of either the webcam or an error image */
@@ -427,4 +459,82 @@ public class WebcamManagerV2
 			e.printStackTrace();
 		}
     }
+	
+	//will allow us to draw over the current webcam panel
+	class DrawableWebCamPanel implements WebcamPanel.Painter
+	{
+		@Override
+		public void paintImage(WebcamPanel panel, BufferedImage image, Graphics2D g2) {
+			//paints default image from webcam panel
+			if (painter != null) {
+				painter.paintImage(panel, image, g2);
+			}
+			//if there are no found objecs, just don't do anything else here
+			if (foundObjects == null) {
+				return;
+			}
+			
+			Iterator<DetectedObject> dfi = foundObjects.iterator();
+			int tx = TheWebCamPanel.getWidth();
+			int ty = TheWebCamPanel.getHeight();
+			
+			//go through each detected object in display them on screen
+			while (dfi.hasNext()) {
+				
+				DetectedObject currentObject = dfi.next();
+				Rectangle2D.Double box = currentObject.getShape();
+				double scaler = 1.0;
+				
+				//if screen width is smaller than screen height
+				if(tx < ty)
+				{
+					//handles scaling bounding box position and size according to screen size
+					scaler = tx/WebcamResolution.VGA.getSize().getWidth();
+					double extraY = (ty - WebcamResolution.VGA.getSize().getHeight() * scaler)/2;
+					g2.setStroke(currentObject.getStroke());
+					g2.setColor(currentObject.getColor());
+					box = new Rectangle2D.Double(currentObject.getShape().getX() * scaler,
+												currentObject.getShape().getY() * scaler + extraY,
+												currentObject.getShape().getWidth() * scaler,
+												currentObject.getShape().getHeight() * scaler);
+				}
+				
+				//if screen width is bigger than screen height
+				else if(tx > ty)
+				{
+					//handles scaling bounding box position and size according to screen size
+					scaler = ty/WebcamResolution.VGA.getSize().getHeight();
+					double extraX = (tx - WebcamResolution.VGA.getSize().getWidth() * scaler)/2;
+					g2.setStroke(currentObject.getStroke());
+					g2.setColor(currentObject.getColor());
+					box = new Rectangle2D.Double(currentObject.getShape().getX() * scaler + extraX,
+												currentObject.getShape().getY() * scaler,
+												currentObject.getShape().getWidth() * scaler,
+												currentObject.getShape().getHeight() * scaler);
+				}
+				
+				//actually draws scaled elements
+				g2.draw(box);					
+				Font font = new Font("sans-serif", Font.BOLD, (int) Math.round(LabelfontSize * scaler));
+				g2.setFont(font);
+				FontMetrics metrics = g2.getFontMetrics(font);
+				//will show label twice overlapping for neat visual effect
+				g2.drawString(currentObject.getName(), Math.round(box.getX()),
+						Math.round(box.getY()) + metrics.getHeight()/2);
+				
+				g2.setColor(Color.WHITE);
+				g2.drawString(currentObject.getName(), Math.round(box.getX()) + (int) Math.ceil(1*scaler),
+						Math.round(box.getY()) + metrics.getHeight()/2 + (int) Math.ceil(1*scaler));
+			}
+		}
+
+		@Override
+		public void paintPanel(WebcamPanel arg0, Graphics2D arg1) {
+			// TODO Auto-generated method stub
+			if (painter != null) {
+				painter.paintPanel(arg0, arg1);
+			}
+		}
+		
+	}
 }
