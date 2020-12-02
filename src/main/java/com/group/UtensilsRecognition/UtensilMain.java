@@ -28,7 +28,8 @@ public class UtensilMain{
 		widths.add(2f);
 		colors.add(Color.BLUE);
 		
-		OpenCV.loadShared();
+		//OpenCV.loadShared();
+		OpenCV.loadLocally();
 		webcam = new WebcamManagerV2();
 		frame = new UtensilRecognitionUI(webcam.GetWebCamPanel());
 		frame.setVisible(true);
