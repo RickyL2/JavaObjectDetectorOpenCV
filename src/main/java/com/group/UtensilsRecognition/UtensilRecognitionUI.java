@@ -102,6 +102,7 @@ public class UtensilRecognitionUI extends JFrame{
         startpredict.addActionListener(new StartPredictButton());
         settingButton.addActionListener(new SettingsButtonAction());
         createClassifierButton.addActionListener(new CreateUserButtonAction());
+        backButton.addActionListener(new backButtonAction());
 	}
 	
 	private void CreateColorComboBox()
@@ -256,6 +257,17 @@ public class UtensilRecognitionUI extends JFrame{
 		}
 		
 	}
+    
+  //replaces current ui stuf with those for settings
+    private class backButtonAction implements ActionListener
+	{
+	    public void actionPerformed(ActionEvent e) 
+	    {
+	    	remove(MainPanel);
+	    	createStandardUI();
+			revalidate();
+        }
+    }
 	
 	/** Places standard UI elements into different portions and adds them to the frame. */
 	private void createStandardUI()
