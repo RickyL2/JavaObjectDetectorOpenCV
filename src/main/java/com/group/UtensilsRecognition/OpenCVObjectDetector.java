@@ -18,56 +18,55 @@ public class OpenCVObjectDetector {
 
 	private List<CascadeClassifier> ccs = null;
 	//lists that will contain properties that relate to each cascade classifier
-	private List<String> ccsLabels = null;
-	private List<Float> ccsWidths = null;
-	private List<Color> ccsColors = null;
+	private List<CascadeClassifierProperties> ccsprops = null;
 	
 	private boolean DEBUG_MODE = true;
 	
 	/**
 	 * Takes in the lists of values to produce multiple cascade classifiers
 	 * @param xmlNames: list of strings with each string being the full name of the xml file
+	 * @param classifierName: the name of the classifier type, name of detected object
 	 * @param widths: list of floats representing the widths of the bounding boxes for each cascade classifier
 	 * @param colors: list of colors for each of the bounding boxes
 	 */
-	public OpenCVObjectDetector(List<String> xmlNames, List<Float> widths, List<Color> colors)
+	public OpenCVObjectDetector()
 	{
-		CreateLists();
-		
-		//creates each classifier and adds the properties to their corresponding list
-		for(int i = 0;  i < xmlNames.size() && i < xmlNames.size() &&  i < xmlNames.size(); i++)
-		{
-			ccs.add(new CascadeClassifier(xmlNames.get(i)));
-			ccsLabels.add(xmlNames.get(i).substring(0, xmlNames.get(i).length() - 4));
-			ccsWidths.add(widths.get(i));
-			ccsColors.add(colors.get(i));
-		}
+		ccs = new ArrayList<CascadeClassifier>();
+		ccsprops = new ArrayList<CascadeClassifierProperties>();
 	}
 	
 	/**
 	 * if parameters that are given are for a single cascade classifier, will only create one
 	 * @param xmlName: the name of the cascade classifier file
+	 * @param classifierName: the name of the classifier type, name of detected object
 	 * @param width: the desired width of the bounding box
 	 * @param color: the desired color of the bounding box
 	 */
-	public OpenCVObjectDetector(String xmlName, float width, Color color)
+	public void addClassifier(String xmlName, String classifierName, float width, Color color)
 	{
-		CreateLists();
-		
 		//creates new cascade classifier and saves properties to lists
 		ccs.add(new CascadeClassifier(xmlName));
-		ccsLabels.add(xmlName.substring(0, xmlName.length() - 4));
-		ccsWidths.add(width);
-		ccsColors.add(color);		
+		CascadeClassifierProperties temp = new CascadeClassifierProperties(classifierName, xmlName, width, color);
+		ccsprops.add(temp);	
 	}
 	
-	/** Initializes the list variables */
-	private void CreateLists()
+	public void addClassifier(CascadeClassifierProperties r)
 	{
-		ccs = new ArrayList<CascadeClassifier>();
-		ccsLabels = new ArrayList<String>();
-		ccsWidths = new ArrayList<Float>();
-		ccsColors = new ArrayList<Color>();
+		ccs.add(new CascadeClassifier(r.getFilePath()));
+		ccsprops.add(r);
+	}
+	
+	public void deleteClassifier(String xmlName)
+	{
+		for(int i = 0; i < ccs.size(); i++)
+		{
+			if(ccsprops.get(i).getFilePath() == xmlName)
+			{
+				ccs.remove(i);
+				ccsprops.remove(i);
+				break;
+			}
+		}
 	}
 	
 	/**
@@ -111,11 +110,11 @@ public class OpenCVObjectDetector {
 					for(Rect rect: objDetection.toArray())
 					{
 						if(DEBUG_MODE)
-							System.out.println( ccsLabels.get(w) + (r++) + " found at " + rect.x + "," + rect.y);
+							System.out.println( ccsprops.get(w).getLabel() + (r++) + " found at " + rect.x + "," + rect.y);
 						
 						Rectangle2D.Double box = new Rectangle2D.Double(src.width() - rect.x - rect.width, rect.y, rect.width, rect.height);
-						DetectedObject temp = new DetectedObject(ccsWidths.get(w), ccsColors.get(w),
-																	box, ccsLabels.get(w));
+						DetectedObject temp = new DetectedObject(ccsprops.get(w).getWidth(), ccsprops.get(w).getColor(),
+																	box, ccsprops.get(w).getLabel());
 						foundObjects.get(w).add(temp);
 					}
 					
