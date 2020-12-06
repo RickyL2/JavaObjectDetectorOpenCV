@@ -313,6 +313,31 @@ public class WebcamManagerV2
 		return new BufferedImage(640, 480, BufferedImage.TYPE_INT_RGB);
 	}
 	
+	public BufferedImage takePhotoBW()
+	{
+		BufferedImage temp = takePhoto();
+		int width = temp.getWidth();
+        int height = temp.getHeight();
+        
+        for(int i=0; i<height; i++) {
+            
+            for(int j=0; j<width; j++) {
+            
+               Color c = new Color(temp.getRGB(j, i));
+               int red = (int)(c.getRed() * 0.299);
+               int green = (int)(c.getGreen() * 0.587);
+               int blue = (int)(c.getBlue() *0.114);
+               Color newColor = new Color(red+green+blue,
+               
+               red+green+blue,red+green+blue);
+               
+               temp.setRGB(j,i,newColor.getRGB());
+            }
+         }
+        
+		return temp;
+	}
+	
 	public void SetDetectedObjectList(List<DetectedObject> newListOfObjects)
 	{
 		foundObjects = newListOfObjects;
@@ -470,9 +495,8 @@ public class WebcamManagerV2
 				painter.paintImage(panel, image, g2);
 			}
 			//if there are no found objecs, just don't do anything else here
-			if (foundObjects == null) {
+			if (foundObjects == null)
 				return;
-			}
 			
 			Iterator<DetectedObject> dfi = foundObjects.iterator();
 			int tx = TheWebCamPanel.getWidth();

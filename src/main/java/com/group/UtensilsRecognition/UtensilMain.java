@@ -1,6 +1,5 @@
 package com.group.UtensilsRecognition;
 
-import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,43 +12,55 @@ public class UtensilMain{
 	private static UtensilRecognitionUI frame;
 	private static OpenCVObjectDetector objectDetector;
 	
-	public static List<String> xmlNames = new ArrayList<String>();
-	public static List<Float> widths = new ArrayList<Float>();
-	public static List<Color> colors = new ArrayList<Color>();
+	private static int fpsForObjectDetection = 20;
 	
 	public static void main(String[] args)
-	{	
-		//creates lists
-		xmlNames.add("face.xml");
-		widths.add(1f);
-		colors.add(Color.RED);
-		
-		xmlNames.add("spoon.xml");
-		widths.add(2f);
-		colors.add(Color.BLUE);
-		
-		//OpenCV.loadShared();
+	{
+		//loads opencv stuff
 		OpenCV.loadLocally();
+		
 		webcam = new WebcamManagerV2();
 		frame = new UtensilRecognitionUI(webcam.GetWebCamPanel());
 		frame.setVisible(true);
-		//objectDetector = new OpenCVObjectDetector("face.xml", 1, Color.RED);
-		objectDetector = new OpenCVObjectDetector(xmlNames, widths, colors);
+		objectDetector = new OpenCVObjectDetector();
 		
+		int timeBetweenEachDetection = 1000/fpsForObjectDetection;
+		
+		//creates thread that will manage object detection
 		Thread t = new Thread() {
 
 			@Override
 			public void run() {
 				while(true)
 				{
-					if(webcam.IsCameraConnected())
+					//check if list of classifiers have been updated
+					if(frame.updatedClassifierListAvailable())
 					{
+						//gets updates list
+						ArrayList<CascadeClassifierProperties> newClassifiers = frame.getUpdatedListOfClassifiers();
+						//sends new list to object detector
+						objectDetector.setToNewClassifiers(newClassifiers);
+					}
+					
+					//checks if camera is connected and if object recognition should even be running based on ui
+					if(webcam.IsCameraConnected() && frame.ShouldRun())
+					{
+						//take a photo from webcam
 						BufferedImage currentFrame = webcam.takePhoto();
+						//give photo to objectDetector and get list of detected objects
 						List<DetectedObject> foundObjects = objectDetector.FindObjects(currentFrame);
+						//gives list to webcam so webcam can draw boxes around found objects
 						webcam.SetDetectedObjectList(foundObjects);
 					}
+					
+					//if object recognition not running, clears list so that any drawn boxes are removed
+					else
+						webcam.SetDetectedObjectList(null);
+					
+					//delays next object detection by certain amount of time. without it, will be doing this as
+					//many times as it possibly can which is quite excessive and makes app quite laggy
 					try {
-						Thread.sleep(125);
+						Thread.sleep(timeBetweenEachDetection);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
