@@ -20,7 +20,7 @@ public class OpenCVObjectDetector {
 	//lists that will contain properties that relate to each cascade classifier
 	private List<CascadeClassifierProperties> ccsprops = null;
 	
-	private boolean DEBUG_MODE = true;
+	private boolean DEBUG_MODE = false;
 	
 	/**
 	 * Takes in the lists of values to produce multiple cascade classifiers

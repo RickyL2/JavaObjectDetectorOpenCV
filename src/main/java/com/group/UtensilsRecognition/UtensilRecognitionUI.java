@@ -67,7 +67,7 @@ public class UtensilRecognitionUI extends JFrame{
     //if recognition should be running or not
     private boolean RecognitionOn;
     
-    private boolean DEBUG_MODE = true;
+    private boolean DEBUG_MODE = false;
 
     public UtensilRecognitionUI(JPanel cameraView) {
     	

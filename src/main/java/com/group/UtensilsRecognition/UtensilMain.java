@@ -8,7 +8,7 @@ import nu.pattern.OpenCV;
 
 public class UtensilMain{
 
-	private static WebcamManagerV2 webcam;
+	private static WebcamManager webcam;
 	private static UtensilRecognitionUI frame;
 	private static OpenCVObjectDetector objectDetector;
 	
@@ -19,7 +19,7 @@ public class UtensilMain{
 		//loads opencv stuff
 		OpenCV.loadLocally();
 		
-		webcam = new WebcamManagerV2();
+		webcam = new WebcamManager();
 		frame = new UtensilRecognitionUI(webcam.GetWebCamPanel());
 		frame.setVisible(true);
 		objectDetector = new OpenCVObjectDetector();
