@@ -495,9 +495,8 @@ public class WebcamManagerV2
 				painter.paintImage(panel, image, g2);
 			}
 			//if there are no found objecs, just don't do anything else here
-			if (foundObjects == null) {
+			if (foundObjects == null)
 				return;
-			}
 			
 			Iterator<DetectedObject> dfi = foundObjects.iterator();
 			int tx = TheWebCamPanel.getWidth();

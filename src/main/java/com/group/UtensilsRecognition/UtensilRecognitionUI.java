@@ -7,7 +7,12 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,16 +29,16 @@ public class UtensilRecognitionUI extends JFrame{
 	//this id thing is just to get rid of some minor error for the class, can ignore
 	private static final long serialVersionUID = 1L;
 	
-	private static final int FRAME_WIDTH = 520;
+	private static final int FRAME_WIDTH = 556;
 	private static final int FRAME_HEIGHT = 500;
 	
-	//regular ui stuff
+	//regular ui stuff---------------
 	private String FrameName = "Utensil Recognition Software";
 	private Color defaultButtonColor;
     private JButton startpredict;
     private JButton settingButton;
     
-    //settings ui stuff
+    //settings ui stuff--------------
     
     //for creating classifier
     private JTextField classifierLabel;
@@ -46,8 +51,11 @@ public class UtensilRecognitionUI extends JFrame{
     private JButton getClassifierButton;
     private JButton createClassifierButton;
     
-    //for viewing/deleting classifiers
+    //for viewing/saving/loading classifiers
 	private ArrayList<CascadeClassifierProperties> oldClassifiers;
+	private boolean updateAvailableForCascadeClassifierList;
+	private String saveFileName = "savedClassifiers.txt";
+	private String seperatingChar = " ";
 	
 	//for saving/going back to main ui
 	private JButton backButton;
@@ -56,18 +64,33 @@ public class UtensilRecognitionUI extends JFrame{
     
     private JPanel MainPanel;
     
-    private boolean RecognitionOn = false;
+    //if recognition should be running or not
+    private boolean RecognitionOn;
+    
+    private boolean DEBUG_MODE = true;
 
     public UtensilRecognitionUI(JPanel cameraView) {
     	
     	this.cameraView = cameraView;
     	oldClassifiers = new ArrayList<CascadeClassifierProperties>();
+    	RecognitionOn = false;   
     	
+    	//gets classifiers properties from file if any available
+    	GetClassifierDataFromFile();
+    	
+    	if(oldClassifiers.size() == 0)
+    		updateAvailableForCascadeClassifierList = false;
+    	
+    	else
+    		updateAvailableForCascadeClassifierList = true; 	
+    	
+    	//frame properties
         setTitle(FrameName);
         setSize(FRAME_WIDTH, FRAME_HEIGHT);
         setMinimumSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
+        
         
         createButtons();
         createStandardUI();
@@ -105,6 +128,7 @@ public class UtensilRecognitionUI extends JFrame{
         backButton.addActionListener(new backButtonAction());
 	}
 	
+	/** adds options to colorbox combo */
 	private void CreateColorComboBox()
 	{
 		classifierColor = new JComboBox<String>();
@@ -122,6 +146,7 @@ public class UtensilRecognitionUI extends JFrame{
 		classifierColor.setSelectedIndex(7);
 	}
 	
+	/** adds options to width combo */
 	private void CreateWidthComboBox()
 	{
 		classifierWidth = new JComboBox<Float>();
@@ -163,36 +188,47 @@ public class UtensilRecognitionUI extends JFrame{
             }
             
             else 
-            {
-                System.out.println("Process was cancelled by user.");
-            }
+            	System.out.println("Process was cancelled by user.");
 	    }
 	}
     
-    /** Is responsible for activating openCV recognition by setting boolean to true. */
+    /** Is responsible for setting boolean to true/false. */
     private class StartPredictButton implements ActionListener
 	{
 	    public void actionPerformed(ActionEvent e) 
 	    {
 	    	RecognitionOn = !RecognitionOn;
 	    	
-	    	
 	    	if(RecognitionOn)
-	    	{
 	    		startpredict.setBackground(Color.GREEN);
-	    	}
 	    	
 	    	else
-	    	{
 	    		startpredict.setBackground(defaultButtonColor);
-	    	}
         }
     }
     
-    //returns boolean representing if app should be running
+    /** returns boolean representing if recognition stuff should be running **/
     public boolean ShouldRun()
     {
     	return RecognitionOn;
+    }
+    
+    /**
+     * @return boolean representing if classifier list has been updated
+     */
+    public boolean updatedClassifierListAvailable()
+    {
+    	return updateAvailableForCascadeClassifierList;
+    }
+    
+    /**
+     * @return updated classifier list
+     */
+    public ArrayList<CascadeClassifierProperties> getUpdatedListOfClassifiers()
+    {
+    	//sets to false so that app knows that its list is up to date
+    	updateAvailableForCascadeClassifierList = false;
+    	return oldClassifiers;
     }
     
     /** will crate classifier stuff if fields have been filled out */
@@ -204,12 +240,14 @@ public class UtensilRecognitionUI extends JFrame{
 	    	{
 	    		CascadeClassifierProperties temp = new CascadeClassifierProperties(classifierLabel.getText()
 	    											, classifierPath.getText().toString()
-	    											, getFloatFromString(classifierWidth.getSelectedItem().toString())
+	    											, Float.parseFloat(classifierWidth.getSelectedItem().toString())
 	    											, getColorFromString(classifierColor.getSelectedItem().toString()));
 	    		oldClassifiers.add(temp);	    		
 	    		classifierLabel.setText("");
 		    	classifierPath.setText("select file");
-
+		    	
+		    	updateAvailableForCascadeClassifierList = true;
+		    	
 		    	remove(MainPanel);
 		    	createSettingsUI();
 				revalidate();
@@ -217,7 +255,7 @@ public class UtensilRecognitionUI extends JFrame{
         }
     }
     
-    //replaces current ui stuf with those for settings
+    /** replaces current ui stuf with those for settings **/
     private class SettingsButtonAction implements ActionListener
 	{
 	    public void actionPerformed(ActionEvent e) 
@@ -231,7 +269,7 @@ public class UtensilRecognitionUI extends JFrame{
         }
     }
     
-    //will delete the classifer with matching file path that is saved with delete button
+    /** will delete the classifier with matching file path that is saved with delete button **/
     private class DeleteButtonListener implements ActionListener
 	{
 		String filePath;
@@ -242,6 +280,8 @@ public class UtensilRecognitionUI extends JFrame{
 		@Override
 		public void actionPerformed(ActionEvent arg0) {
 			
+			//searches for the correct classifier to delete and deletes it
+			
 			for(int i = 0; i < oldClassifiers.size(); i++)
 			{
 				if(oldClassifiers.get(i).getFilePath() == filePath)
@@ -251,6 +291,8 @@ public class UtensilRecognitionUI extends JFrame{
 				}
 			}
 			
+			//sets bool so app knows list has been updated and resets ui
+			updateAvailableForCascadeClassifierList = true;			
 			remove(MainPanel);
 	    	createSettingsUI();
 			revalidate();
@@ -258,16 +300,111 @@ public class UtensilRecognitionUI extends JFrame{
 		
 	}
     
-  //replaces current ui stuf with those for settings
+    //replaces current ui stuff with those for settings
     private class backButtonAction implements ActionListener
 	{
 	    public void actionPerformed(ActionEvent e) 
 	    {
+	    	SaveClassifiersToFile();
+	    	
 	    	remove(MainPanel);
 	    	createStandardUI();
 			revalidate();
         }
     }
+    
+    /** opens the file and saves all the classifier properties from the file if any are present */
+    private void GetClassifierDataFromFile()
+	{
+		try
+		{
+			File inFile = new File(saveFileName);
+			oldClassifiers = ExtractUserDataFromFile(inFile);			
+		}
+		catch (NoSuchElementException exception)
+		{
+			
+		}
+	}
+    
+    /**
+     * goes through the file and gets the data for each classifier. if not in correct format, will move on to
+     * the next one until there are no more left
+     * @param inFile: file that will be searched
+     * @return ArrayList<CascadeClassifierProperties> that will be made up of classifier properties from the file
+     */
+    private ArrayList<CascadeClassifierProperties> ExtractUserDataFromFile (File inFile)
+	{
+    	ArrayList<CascadeClassifierProperties> Data = new ArrayList<CascadeClassifierProperties>();
+    	
+		try 
+		{
+			//enters file
+			Scanner in = new Scanner(inFile);
+			while(in.hasNext())
+			{
+				//gets current line in file
+				String theLine = in.nextLine();
+				String[] CurrentLine = theLine.split(seperatingChar);
+				
+				if(DEBUG_MODE)
+				{
+					System.out.println("current line length: " + CurrentLine.length);
+					System.out.println("current line: " + theLine);
+				}
+				
+				//will only add user from file if line is properly formatted
+				if (CurrentLine.length == 4)
+				{
+					String tempLabel = CurrentLine[0];
+					String tempPath = CurrentLine[1];
+					float tempWidth = Float.parseFloat(CurrentLine[2]);
+					Color tempColor = getColorFromString(CurrentLine[3]);
+					
+					//check if file path is valid
+					File tempFile = new File(tempPath);
+					boolean exists = tempFile.exists();
+					
+					if(exists)
+					{
+						CascadeClassifierProperties temp = 
+								new CascadeClassifierProperties(tempLabel, tempPath, tempWidth, tempColor);
+						Data.add(temp);
+					}
+				}
+			}
+			in.close();
+		}
+		catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return Data;
+	}
+    
+    /** save already loaded classifier properties to file */
+    public void SaveClassifiersToFile()
+	{
+		try
+		{
+			// open/create file for output
+			PrintWriter out = new PrintWriter(saveFileName);
+			
+			//goes through each classifier properties and saves to file
+			for(CascadeClassifierProperties current: oldClassifiers)
+			{
+				out.println(current.getLabel() + seperatingChar + current.getFilePath()
+							+ seperatingChar + current.getWidth() + seperatingChar + current.getWordColor());
+			}
+			out.close();
+		}
+		catch (FileNotFoundException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	
 	/** Places standard UI elements into different portions and adds them to the frame. */
 	private void createStandardUI()
@@ -309,9 +446,9 @@ public class UtensilRecognitionUI extends JFrame{
 		for(CascadeClassifierProperties currentClassifier: oldClassifiers)
 		{
 			String theFilePath = currentClassifier.getFilePath();
-			JLabel savedLabel = new JLabel(currentClassifier.getLabel());
-			JLabel savedFilePath = new JLabel(theFilePath);
-			JLabel savedWidth = new JLabel("" + currentClassifier.getWidth());
+			JLabel savedLabel = new JLabel(currentClassifier.getLabel() + " ");
+			JLabel savedFilePath = new JLabel(theFilePath + " ");
+			JLabel savedWidth = new JLabel("" + currentClassifier.getWidth() + " ");
 			JLabel savedColor = new JLabel(currentClassifier.getWordColor());
 			
 			JButton deleteButton = new JButton();
@@ -369,6 +506,11 @@ public class UtensilRecognitionUI extends JFrame{
 		add(MainPanel);
 	}
 	
+	/**
+	 * converts string to color, assuming that the string is a word of a color
+	 * @param c: the string with a color name
+	 * @return the desired color. if color from string not available, will return default color of black
+	 */
 	private Color getColorFromString(String c)
 	{
 		Color temp;
@@ -410,41 +552,4 @@ public class UtensilRecognitionUI extends JFrame{
 		
 		return temp;
 	}
-	
-	private Float getFloatFromString(String c)
-	{
-		float temp;
-		
-		switch (c) {
-       case "2":
-        	temp = 2f;
-            break;
-        case "3":
-        	temp = 3f;
-            break;
-        case "4":
-        	temp = 4f;
-            break;
-        case "5":
-        	temp = 5f;
-            break;
-        case "6":
-        	temp = 6f;
-            break;
-        case "7":
-        	temp = 7f;
-            break;
-        case "8":
-        	temp = 8f;
-            break;
-        case "9":
-        	temp = 9f;
-            break;
-        default: temp = 1f;
-            break;
-		}
-		
-		return temp;
-	}
-
 }

@@ -69,6 +69,14 @@ public class OpenCVObjectDetector {
 		}
 	}
 	
+	public void setToNewClassifiers(ArrayList<CascadeClassifierProperties> replacement)
+	{
+		for(CascadeClassifierProperties i: replacement)
+		{
+			addClassifier(i);
+		}
+	}
+	
 	/**
 	 * Detects objects within the provided image using the multiple cascade classifiers that were previously saved
 	 * @param temp: bufferedimage that will be checked for objects
