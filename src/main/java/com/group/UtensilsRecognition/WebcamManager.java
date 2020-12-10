@@ -105,7 +105,7 @@ public class WebcamManager
 			// TODO Auto-generated method stub
 			if (e.getItem() != currentWebcam)
 			{
-				if (currentWebcam != null) 
+				if (currentWebcam != null)
 				{
 					Webcam temp = (Webcam) e.getItem();
 					System.out.println("Selected " + temp.getName());
@@ -273,7 +273,7 @@ public class WebcamManager
 		TheWebCamPanel.setPainter(new DrawableWebCamPanel());
 		
 		TheWebCamPanel.start();
-		TheWebCamPanel.setMirrored(true);	
+		TheWebCamPanel.setMirrored(true);
 		
 		//just shows some info, not really important. I like it there but i
 		//suppose it would look better without
