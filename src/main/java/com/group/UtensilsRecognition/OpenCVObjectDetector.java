@@ -71,6 +71,9 @@ public class OpenCVObjectDetector {
 	
 	public void setToNewClassifiers(ArrayList<CascadeClassifierProperties> replacement)
 	{
+		ccs.clear();
+		ccsprops.clear();
+		
 		for(CascadeClassifierProperties i: replacement)
 		{
 			addClassifier(i);
