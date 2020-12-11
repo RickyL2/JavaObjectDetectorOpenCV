@@ -159,6 +159,11 @@ public class WebcamManager
     		picker = new WebcamPicker();
     		picker.addItemListener(new PanelInteractivity());
     		DisconnectfromCam(event.getWebcam());
+    		
+    		//will connect to the default cam if cams are present
+    		if(!Webcam.getWebcams().isEmpty())
+    			ConnectToCam(Webcam.getDefault(), false);
+    		
     		// ending time
     		long end = System.currentTimeMillis();
     		
