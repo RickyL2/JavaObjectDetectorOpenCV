@@ -1,4 +1,4 @@
-Hello, thanks for trying out our java app.
+Hello, thanks for checking out our java app.
 
 In order to use the app, you are going to need some haar cascade models. Some models have been provided within the folder titled: DefaultCascadeClassifiers
 
