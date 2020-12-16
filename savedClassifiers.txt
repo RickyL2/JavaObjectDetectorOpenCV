@@ -1,0 +1,3 @@
+face DefaultCascadeClassifiers\face.xml 5.0 pink
+fork DefaultCascadeClassifiers\forkN.xml 7.0 red
+spoon DefaultCascadeClassifiers\spoon.xml 7.0 green
