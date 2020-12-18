@@ -1,6 +1,6 @@
 # Object Recognition using OpenCV and Java
 
-Hello, thanks for checking out our java app.
+Hello, thanks for checking out our java app. It was a class project so its pretty simple. Room for improvement.
 
 In order to use the app, you are going to need some haar cascade models. Some models have been provided within the folder titled: DefaultCascadeClassifiers
 
