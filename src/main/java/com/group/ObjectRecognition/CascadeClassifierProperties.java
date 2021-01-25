@@ -1,4 +1,4 @@
-package com.group.UtensilsRecognition;
+package com.group.ObjectRecognition;
 
 import java.awt.Color;
 
