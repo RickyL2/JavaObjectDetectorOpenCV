@@ -2,8 +2,7 @@
 
 Hello, thanks for checking out our java app. It was a class project so its pretty simple. Room for improvement.
 
-Requirements: Java version 8 or greator
-              1 or more webcams
+Requirements: Java version 8 or greator and 1 or more webcams
 
 In order to use the app, you are going to need some haar cascade models. Some models have been provided within the folder titled: DefaultCascadeClassifiers
 
